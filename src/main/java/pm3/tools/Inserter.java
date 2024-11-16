@@ -33,7 +33,7 @@ public class Inserter {
          System.out.println("TABLE ConsumableAttributes: create, getConsumableAttributeByItemIdAndAttributeId, getAttributesByItemId, updateConsumableAttribute");
          System.out.println("TABLE Consumables: create, getConsumableByItemID, updateConsumable, updateDescription, getConsumablesByItemLevel, delete");
          System.out.println("TABLE EquippablesItems: create");
-         System.out.println("TABLE GearAndWeaponAttributes: create");
+         System.out.println("TABLE GearAndWeaponAttributes: create, getAttributeByIds");
          System.out.println("TABLE GearAndWeaponJobs: create, getItemByID");
          System.out.println("TABLE Gears: create, getGearByPartialNAme, delete");
      	 System.out.println("TABLE Weapons: create, getWeaponByItemID, getAllWeapons, update, delete");
@@ -129,7 +129,7 @@ public class Inserter {
 
              // Create GearAndWeaponAttributes
              GearAndWeaponAttributes swordStrength = new GearAndWeaponAttributes(
-            		 savedEquippableSword.getItemID(), savedStrength.getAttributeID(), 5
+            		 savedEquippableSword, savedStrength, 5
              );
 //             System.out.println(savedSword.getItemID());
 //             System.out.println(savedEquippableSword.getItemID());
@@ -205,10 +205,14 @@ public class Inserter {
 
              List<Consumables> levelConsumables = consumablesDao.getConsumablesByItemLevel(1);
              System.out.println("Retrieved consumables by level, count: " + levelConsumables.size());
+             
+             // Read GearAndWeaponAttributes
+             GearAndWeaponAttributes retrievedGearAndWeaponAttributes = gearAndWeaponAttributesDao.getGearAttributeByIds(savedSword.getItemID(), savedStrength.getAttributeID());
+             System.out.println("Retrieved gear and weapon attributes");
 
              // Read GearAndWeaponJobs
-//             GearAndWeaponJobs retrievedJob = gearAndWeaponJobsDao.getItemByID(savedSword.getItemID());
-             System.out.println("Retrieved gear and weapon job(need UPDATE!)");
+             GearAndWeaponJobs retrievedJob = gearAndWeaponJobsDao.getByItemID(savedSword.getItemID());
+             System.out.println("Retrieved gear and weapon job");
 
              // Read Gears
              List<Gears> armorList = gearsDao.getGearByPartialName("Iron");

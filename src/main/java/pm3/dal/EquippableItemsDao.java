@@ -116,48 +116,4 @@ public class EquippableItemsDao {
         }
         return null;
     }
-
-    public List<EquippableItems> getAll() throws SQLException {
-        List<EquippableItems> equippableItemsList = new ArrayList<>();
-        String selectAllEquippableItems = 
-            "SELECT i.*, e.ItemLevel, e.SlotID, e.RequiredLevel, s.* " +
-            "FROM Items i " +
-            "INNER JOIN EquippableItems e ON i.ItemID = e.ItemID " +
-            "INNER JOIN EquipmentSlots s ON e.SlotID = s.SlotID;";
-            
-        Connection connection = null;
-        PreparedStatement selectStmt = null;
-        ResultSet results = null;
-
-        try {
-            connection = connectionManager.getConnection();
-            selectStmt = connection.prepareStatement(selectAllEquippableItems);
-            results = selectStmt.executeQuery();
-
-            while (results.next()) {
-                // Get the slot first
-                EquipmentSlots slot = EquipmentSlotsDao.getInstance().getSlotById(results.getInt("SlotID"));
-                
-                EquippableItems item = new EquippableItems(
-                    results.getInt("ItemID"),
-                    results.getString("ItemName"),
-                    results.getInt("MaxStackSize"),
-                    results.getBoolean("MarketAllowed"),
-                    results.getInt("VendorPrice"),
-                    results.getInt("ItemLevel"),
-                    slot,
-                    results.getInt("RequiredLevel")
-                );
-                equippableItemsList.add(item);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw e;
-        } finally {
-            if (connection != null) connection.close();
-            if (selectStmt != null) selectStmt.close();
-            if (results != null) results.close();
-        }
-        return equippableItemsList;
-    }
 }

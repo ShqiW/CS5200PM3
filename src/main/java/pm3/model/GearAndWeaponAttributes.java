@@ -1,20 +1,20 @@
 package pm3.model;
 
 public class GearAndWeaponAttributes {
-    protected int itemID;
-    protected int attributeID;
+    protected Items item;
+    protected Attributes attribute;
     protected int attributeBonus;
 
-    public GearAndWeaponAttributes(int itemID, int attributeID, int attributeBonus) {
-        this.itemID = itemID;
-        this.attributeID = attributeID;
+    public GearAndWeaponAttributes(Items item, Attributes attribute, int attributeBonus) {
+        this.item = item;
+        this.attribute = attribute;
         this.attributeBonus = attributeBonus;
     }
 
-    public int getItemID() { return itemID; }
+    public Items getItem() { return item; }
 
 
-    public int getAttributeID() { return attributeID; }
+    public Attributes getAttribute() { return attribute; }
 
 
     public int getAttributeBonus() { return attributeBonus; }
