@@ -5,19 +5,21 @@ public class Weapons extends EquippableItems {
     protected double autoAttack;
     protected double attackDelay;
     
+    // Constructor for new weapons with EquipmentSlots
     public Weapons(String itemName, int maxStackSize, boolean marketAllowed, int vendorPrice,
-                  int itemLevel, int slotID, int requiredLevel,
-                  int physicalDamage, double autoAttack, double attackDelay) {
-        super(itemName, maxStackSize, marketAllowed, vendorPrice, itemLevel, slotID, requiredLevel);
+                   int itemLevel, EquipmentSlots slot, int requiredLevel,
+                   int physicalDamage, double autoAttack, double attackDelay) {
+        super(itemName, maxStackSize, marketAllowed, vendorPrice, itemLevel, slot, requiredLevel);
         this.physicalDamage = physicalDamage;
         this.autoAttack = autoAttack;
         this.attackDelay = attackDelay;
     }
-    
+
+    // Constructor for existing weapons with itemID and EquipmentSlots
     public Weapons(int itemID, String itemName, int maxStackSize, boolean marketAllowed, int vendorPrice,
-                  int itemLevel, int slotID, int requiredLevel,
-                  int physicalDamage, double autoAttack, double attackDelay) {
-        super(itemID, itemName, maxStackSize, marketAllowed, vendorPrice, itemLevel, slotID, requiredLevel);
+                   int itemLevel, EquipmentSlots slot, int requiredLevel,
+                   int physicalDamage, double autoAttack, double attackDelay) {
+        super(itemID, itemName, maxStackSize, marketAllowed, vendorPrice, itemLevel, slot, requiredLevel);
         this.physicalDamage = physicalDamage;
         this.autoAttack = autoAttack;
         this.attackDelay = attackDelay;

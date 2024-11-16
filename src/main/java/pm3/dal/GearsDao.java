@@ -6,6 +6,8 @@ import java.util.List;
 
 import pm3.model.Gears;
 import pm3.model.Items;
+import pm3.model.EquippableItems;
+import pm3.model.EquipmentSlots;
 
 public class GearsDao {
     protected ConnectionManager connectionManager;
@@ -23,56 +25,65 @@ public class GearsDao {
     }
     
     public Gears create(Gears gear) throws SQLException {
-        // First create an entry in Items, followed by EquippableItems
-        Items item = ItemsDao.getInstance().create(new Items(
-            gear.getItemName(), gear.getMaxStackSize(), 
-            gear.isMarketAllowed(), gear.getVendorPrice()));
+        // First create an entry in Items, then EquippableItems
+        EquippableItems equippableItem = EquippableItemsDao.getInstance().create(new EquippableItems(
+            gear.getItemName(),
+            gear.getMaxStackSize(),
+            gear.isMarketAllowed(),
+            gear.getVendorPrice(),
+            gear.getItemLevel(),
+            gear.getSlot(),
+            gear.getRequiredLevel()
+        ));
 
-//        String insertEquippableItem = "INSERT INTO EquippableItems(ItemID, ItemLevel, SlotID, RequiredLevel) VALUES (?, ?, ?, ?)";
         String insertGear = "INSERT INTO Gears(ItemID, DefenseRating, MagicDefenseRating) VALUES (?, ?, ?)";
 
         Connection connection = null;
-        PreparedStatement equippableStmt = null;
         PreparedStatement gearStmt = null;
 
         try {
             connection = connectionManager.getConnection();
             
-//            // Insert into EquippableItems
-//            equippableStmt = connection.prepareStatement(insertEquippableItem);
-//            equippableStmt.setInt(1, item.getItemID());
-//            equippableStmt.setInt(2, gear.getItemLevel());
-//            equippableStmt.setInt(3, gear.getSlotID());
-//            equippableStmt.setInt(4, gear.getRequiredLevel());
-//            equippableStmt.executeUpdate();
-
             // Insert into Gears
             gearStmt = connection.prepareStatement(insertGear);
-            gearStmt.setInt(1, item.getItemID());
+            gearStmt.setInt(1, equippableItem.getItemID());
             gearStmt.setInt(2, gear.getDefenseRating());
             gearStmt.setInt(3, gear.getMagicDefenseRating());
             gearStmt.executeUpdate();
 
             // Return the combined Gear object
-            return new Gears(item.getItemID(), item.getItemName(), item.getMaxStackSize(), 
-                             item.isMarketAllowed(), item.getVendorPrice(), gear.getItemLevel(), 
-                             gear.getSlotID(), gear.getRequiredLevel(), 
-                             gear.getDefenseRating(), gear.getMagicDefenseRating());
+            return new Gears(
+                equippableItem.getItemID(),
+                equippableItem.getItemName(),
+                equippableItem.getMaxStackSize(),
+                equippableItem.isMarketAllowed(),
+                equippableItem.getVendorPrice(),
+                equippableItem.getItemLevel(),
+                equippableItem.getSlot(),
+                equippableItem.getRequiredLevel(),
+                gear.getDefenseRating(),
+                gear.getMagicDefenseRating()
+            );
         } catch (SQLException e) {
             e.printStackTrace();
             throw e;
         } finally {
             if (connection != null) connection.close();
-            if (equippableStmt != null) equippableStmt.close();
             if (gearStmt != null) gearStmt.close();
         }
     }
 
-    // Read by partial name
     public List<Gears> getGearByPartialName(String name) throws SQLException {
         List<Gears> gearsList = new ArrayList<>();
-        String selectGears = "SELECT * FROM Gears INNER JOIN Items ON Gears.ItemID = Items.ItemID " +
-                             "WHERE Items.ItemName LIKE ?";
+        String selectGears = 
+            "SELECT i.ItemID, i.ItemName, i.MaxStackSize, i.MarketAllowed, i.VendorPrice, " +
+            "e.ItemLevel, e.SlotID, e.RequiredLevel, " +
+            "g.DefenseRating, g.MagicDefenseRating " +
+            "FROM Items i " +
+            "JOIN EquippableItems e ON i.ItemID = e.ItemID " +
+            "JOIN Gears g ON e.ItemID = g.ItemID " +
+            "WHERE i.ItemName LIKE ?";
+            
         Connection connection = null;
         PreparedStatement selectStmt = null;
         ResultSet results = null;
@@ -84,6 +95,9 @@ public class GearsDao {
             results = selectStmt.executeQuery();
             
             while (results.next()) {
+                // Get the EquipmentSlots object
+                EquipmentSlots slot = EquipmentSlotsDao.getInstance().getSlotById(results.getInt("SlotID"));
+                
                 Gears gear = new Gears(
                     results.getInt("ItemID"),
                     results.getString("ItemName"),
@@ -91,7 +105,7 @@ public class GearsDao {
                     results.getBoolean("MarketAllowed"),
                     results.getInt("VendorPrice"),
                     results.getInt("ItemLevel"),
-                    results.getInt("SlotID"),
+                    slot,
                     results.getInt("RequiredLevel"),
                     results.getInt("DefenseRating"),
                     results.getInt("MagicDefenseRating")
@@ -102,43 +116,59 @@ public class GearsDao {
             e.printStackTrace();
             throw e;
         } finally {
-            if (connection != null) {
-                connection.close();
-            }
-            if (selectStmt != null) {
-                selectStmt.close();
-            }
-            if (results != null) {
-                results.close();
-            }
+            if (results != null) results.close();
+            if (selectStmt != null) selectStmt.close();
+            if (connection != null) connection.close();
         }
         return gearsList;
     }
-
     
-    // Delete
     public void delete(Gears gearItem) throws SQLException {
         String deleteGear = "DELETE FROM Gears WHERE ItemID = ?";
+        String deleteEquippable = "DELETE FROM EquippableItems WHERE ItemID = ?";
+        String deleteItem = "DELETE FROM Items WHERE ItemID = ?";
+        
         Connection connection = null;
-        PreparedStatement deleteStmt = null;
+        PreparedStatement gearStmt = null;
+        PreparedStatement equippableStmt = null;
+        PreparedStatement itemStmt = null;
         
         try {
             connection = connectionManager.getConnection();
-            deleteStmt = connection.prepareStatement(deleteGear);
-            deleteStmt.setInt(1, gearItem.getItemID());
-            deleteStmt.executeUpdate();
+            connection.setAutoCommit(false);  
             
-            // Also delete from Items table if needed
-            ItemsDao.getInstance().delete(gearItem.getItemID());
+            // Delete from Gears
+            gearStmt = connection.prepareStatement(deleteGear);
+            gearStmt.setInt(1, gearItem.getItemID());
+            gearStmt.executeUpdate();
+            
+            // Delete from EquippableItems
+            equippableStmt = connection.prepareStatement(deleteEquippable);
+            equippableStmt.setInt(1, gearItem.getItemID());
+            equippableStmt.executeUpdate();
+            
+            // Delete from Items
+            itemStmt = connection.prepareStatement(deleteItem);
+            itemStmt.setInt(1, gearItem.getItemID());
+            itemStmt.executeUpdate();
+            
+            connection.commit();  
         } catch (SQLException e) {
-            e.printStackTrace();
+            if (connection != null) {
+                try {
+                    connection.rollback();  
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
             throw e;
         } finally {
+            if (gearStmt != null) gearStmt.close();
+            if (equippableStmt != null) equippableStmt.close();
+            if (itemStmt != null) itemStmt.close();
             if (connection != null) {
+                connection.setAutoCommit(true);  
                 connection.close();
-            }
-            if (deleteStmt != null) {
-                deleteStmt.close();
             }
         }
     }

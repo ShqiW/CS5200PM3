@@ -4,18 +4,20 @@ public class Gears extends EquippableItems {
     protected int defenseRating;
     protected int magicDefenseRating;
     
+    // Constructor for new gears with slot as EquipmentSlots
     public Gears(String itemName, int maxStackSize, boolean marketAllowed, int vendorPrice,
-                int itemLevel, int slotID, int requiredLevel,
-                int defenseRating, int magicDefenseRating) {
-        super(itemName, maxStackSize, marketAllowed, vendorPrice, itemLevel, slotID, requiredLevel);
+                 int itemLevel, EquipmentSlots slot, int requiredLevel,
+                 int defenseRating, int magicDefenseRating) {
+        super(itemName, maxStackSize, marketAllowed, vendorPrice, itemLevel, slot, requiredLevel);
         this.defenseRating = defenseRating;
         this.magicDefenseRating = magicDefenseRating;
     }
-    
+
+    // Constructor for existing gears with itemID and slot
     public Gears(int itemID, String itemName, int maxStackSize, boolean marketAllowed, int vendorPrice,
-                int itemLevel, int slotID, int requiredLevel,
-                int defenseRating, int magicDefenseRating) {
-        super(itemID, itemName, maxStackSize, marketAllowed, vendorPrice, itemLevel, slotID, requiredLevel);
+                 int itemLevel, EquipmentSlots slot, int requiredLevel,
+                 int defenseRating, int magicDefenseRating) {
+        super(itemID, itemName, maxStackSize, marketAllowed, vendorPrice, itemLevel, slot, requiredLevel);
         this.defenseRating = defenseRating;
         this.magicDefenseRating = magicDefenseRating;
     }
