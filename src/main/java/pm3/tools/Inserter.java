@@ -9,6 +9,7 @@ import pm3.dal.GearAndWeaponAttributesDao;
 import pm3.dal.GearAndWeaponJobsDao;
 import pm3.dal.GearsDao;
 import pm3.dal.ItemsDao;
+import pm3.dal.JobsDao;
 import pm3.dal.WeaponsDao;
 import pm3.model.Attributes;
 import pm3.model.ConsumableAttributes;
@@ -19,6 +20,7 @@ import pm3.model.GearAndWeaponAttributes;
 import pm3.model.GearAndWeaponJobs;
 import pm3.model.Gears;
 import pm3.model.Items;
+import pm3.model.Jobs;
 import pm3.model.Weapons;
 
 import java.sql.SQLException;
@@ -74,7 +76,7 @@ public class Inserter {
 
              // Create ConsumableAttributes
              ConsumableAttributes potionEffect = new ConsumableAttributes(
-                 savedPotion.getItemID(), savedStrength.getAttributeID(), 100, 0.25f
+                 savedPotion, savedStrength, 100, 0.25f
              );
              ConsumableAttributes savedPotionEffect = consumableAttributesDao.create(potionEffect);
              System.out.println("Created consumable attribute for potion");
@@ -137,9 +139,15 @@ public class Inserter {
 //             System.out.println(swordStrength.getAttributeID());
              GearAndWeaponAttributes savedSwordStrength = gearAndWeaponAttributesDao.create(swordStrength);
              System.out.println("Created gear attribute for sword");
-
+             
+             
+             // create job
+             JobsDao jobsDao = JobsDao.getInstance();
+             Jobs warriorJob = new Jobs("Warrior");
+             Jobs savedWarriorJob = jobsDao.create(warriorJob);
+             
              // Create GearAndWeaponJobs
-             GearAndWeaponJobs swordJob = new GearAndWeaponJobs(savedEquippableSword.getItemID(), 1);
+             GearAndWeaponJobs swordJob = new GearAndWeaponJobs(savedEquippableSword, savedWarriorJob);
              GearAndWeaponJobs savedSwordJob = gearAndWeaponJobsDao.create(swordJob);
              System.out.println("Created gear job for sword");
              
@@ -151,10 +159,10 @@ public class Inserter {
                      savedEquippableSword.getMaxStackSize(),
                      savedEquippableSword.isMarketAllowed(),
                      savedEquippableSword.getVendorPrice(), 
-                     10,              // itemLevel 
-                     mainHandSlot,    // 使用 EquipmentSlots 对象
-                     5,              // requiredLevel
-                     150,            // physicalDamage 
+                     10,              
+                     mainHandSlot,    
+                     5,              
+                     150,            
                      2.5,            // autoAttack
                      2.8             // attackDelay
                  );
@@ -171,11 +179,11 @@ public class Inserter {
                      savedArmor.getMaxStackSize(),
                      savedArmor.isMarketAllowed(),
                      savedArmor.getVendorPrice(),
-                     10,              // itemLevel
-                     armorSlot,       // 使用 EquipmentSlots 对象
-                     5,              // requiredLevel
-                     100,            // defenseRating
-                     50              // magicDefenseRating
+                     10,          
+                     armorSlot,       
+                     5,         
+                     100,           
+                     50             
                  );
              Gears savedIronArmor = gearsDao.create(ironArmor);
              System.out.println("Created gear: Iron Armor");
@@ -211,7 +219,7 @@ public class Inserter {
              System.out.println("Retrieved gear and weapon attributes");
 
              // Read GearAndWeaponJobs
-             GearAndWeaponJobs retrievedJob = gearAndWeaponJobsDao.getByItemID(savedSword.getItemID());
+             GearAndWeaponJobs retrievedJob = gearAndWeaponJobsDao.getByItemId(savedSword.getItemID());
              System.out.println("Retrieved gear and weapon job");
 
              // Read Gears

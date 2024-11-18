@@ -1,14 +1,14 @@
 package pm3.model;
 
 public class GearAndWeaponJobs {
-    protected int itemID;
-    protected int jobID;
+    protected Items item;
+    protected Jobs job;
 
-    public GearAndWeaponJobs(int itemID, int jobID) {
-        this.itemID = itemID;
-        this.jobID = jobID;
+    public GearAndWeaponJobs(Items item, Jobs job) {
+        this.item = item;
+        this.job = job;
     }
 
-    public int getItemID() { return itemID; }
-    public int getJobID() { return jobID; }
+    public Items getItem() { return item; }
+    public Jobs getJob() { return job; }
 }

@@ -1,6 +1,8 @@
 package pm3.dal;
 
 import pm3.model.ConsumableAttributes;
+import pm3.model.Items;
+import pm3.model.Attributes;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,9 +13,13 @@ import java.util.List;
 public class ConsumableAttributesDao {
     protected ConnectionManager connectionManager;
     private static ConsumableAttributesDao instance = null;
+    private ItemsDao itemsDao;
+    private AttributesDao attributesDao;
     
     protected ConsumableAttributesDao() {
         connectionManager = new ConnectionManager();
+        itemsDao = ItemsDao.getInstance();
+        attributesDao = AttributesDao.getInstance();
     }
     
     public static ConsumableAttributesDao getInstance() {
@@ -23,7 +29,6 @@ public class ConsumableAttributesDao {
         return instance;
     }
     
-  
     public ConsumableAttributes create(ConsumableAttributes consumableAttr) throws SQLException {
         String insertConsumableAttr = 
             "INSERT INTO ConsumableAttributes(ItemID, AttributeID, AttributeBonusCap, AttributeBonusPercent) " +
@@ -34,13 +39,14 @@ public class ConsumableAttributesDao {
         try {
             connection = connectionManager.getConnection();
             insertStmt = connection.prepareStatement(insertConsumableAttr);
-            insertStmt.setInt(1, consumableAttr.getItemID());
-            insertStmt.setInt(2, consumableAttr.getAttributeID());
+            // 将对象作为参数直接设置
+            insertStmt.setInt(1, consumableAttr.getItem().getItemID());
+            insertStmt.setInt(2, consumableAttr.getAttribute().getAttributeID());
             insertStmt.setInt(3, consumableAttr.getAttributeBonusCap());
             insertStmt.setDouble(4, consumableAttr.getAttributeBonusPercent());
             insertStmt.executeUpdate();
             
-            return new ConsumableAttributes(consumableAttr.getItemID(),consumableAttr.getAttributeID(),consumableAttr.getAttributeBonusCap(),consumableAttr.getAttributeBonusPercent());
+            return consumableAttr;
         } catch (SQLException e) {
             e.printStackTrace();
             throw e;
@@ -54,10 +60,8 @@ public class ConsumableAttributesDao {
         }
     }
     
-    /**
-     * Get a ConsumableAttributes by its ItemID and AttributeID composite key.
-     */
-    public ConsumableAttributes getConsumableAttributeByItemIdAndAttributeId(int itemId, int attributeId) throws SQLException {
+    public ConsumableAttributes getConsumableAttributeByItemIdAndAttributeId(int itemId, int attributeId) 
+            throws SQLException {
         String selectConsumableAttr = 
             "SELECT ItemID, AttributeID, AttributeBonusCap, AttributeBonusPercent " +
             "FROM ConsumableAttributes WHERE ItemID=? AND AttributeID=?;";
@@ -73,9 +77,13 @@ public class ConsumableAttributesDao {
             results = selectStmt.executeQuery();
             
             if (results.next()) {
+                // 通过 ID 获取完整的 Items 和 Attributes 对象
+                Items item = itemsDao.getItemById(itemId);
+                Attributes attribute = attributesDao.getAttributeByAttributesID(attributeId);
+                
                 return new ConsumableAttributes(
-                    results.getInt("ItemID"),
-                    results.getInt("AttributeID"),
+                    item,
+                    attribute,
                     results.getInt("AttributeBonusCap"),
                     results.getDouble("AttributeBonusPercent")
                 );
@@ -97,9 +105,6 @@ public class ConsumableAttributesDao {
         return null;
     }
     
-    /**
-     * Get all attributes for a specific consumable item.
-     */
     public List<ConsumableAttributes> getAttributesByItemId(int itemId) throws SQLException {
         List<ConsumableAttributes> attributes = new ArrayList<>();
         String selectAttributes = 
@@ -116,9 +121,13 @@ public class ConsumableAttributesDao {
             results = selectStmt.executeQuery();
             
             while (results.next()) {
+                int attributeId = results.getInt("AttributeID");
+                Items item = itemsDao.getItemById(itemId);
+                Attributes attribute = attributesDao.getAttributeByAttributesID(attributeId);
+                
                 attributes.add(new ConsumableAttributes(
-                    results.getInt("ItemID"),
-                    results.getInt("AttributeID"),
+                    item,
+                    attribute,
                     results.getInt("AttributeBonusCap"),
                     results.getDouble("AttributeBonusPercent")
                 ));
@@ -140,10 +149,8 @@ public class ConsumableAttributesDao {
         return attributes;
     }
     
-    /**
-     * Update a ConsumableAttributes record.
-     */
-    public ConsumableAttributes updateConsumableAttribute(ConsumableAttributes consumableAttr) throws SQLException {
+    public ConsumableAttributes updateConsumableAttribute(ConsumableAttributes consumableAttr) 
+            throws SQLException {
         String updateConsumableAttr = 
             "UPDATE ConsumableAttributes SET AttributeBonusCap=?, AttributeBonusPercent=? " +
             "WHERE ItemID=? AND AttributeID=?;";
@@ -155,8 +162,8 @@ public class ConsumableAttributesDao {
             updateStmt = connection.prepareStatement(updateConsumableAttr);
             updateStmt.setInt(1, consumableAttr.getAttributeBonusCap());
             updateStmt.setDouble(2, consumableAttr.getAttributeBonusPercent());
-            updateStmt.setInt(3, consumableAttr.getItemID());
-            updateStmt.setInt(4, consumableAttr.getAttributeID());
+            updateStmt.setInt(3, consumableAttr.getItem().getItemID());
+            updateStmt.setInt(4, consumableAttr.getAttribute().getAttributeID());
             updateStmt.executeUpdate();
             
             return consumableAttr;
@@ -173,9 +180,6 @@ public class ConsumableAttributesDao {
         }
     }
     
-    /**
-     * Delete a ConsumableAttributes record.
-     */
     public void delete(ConsumableAttributes consumableAttr) throws SQLException {
         String deleteConsumableAttr = 
             "DELETE FROM ConsumableAttributes WHERE ItemID=? AND AttributeID=?;";
@@ -185,8 +189,8 @@ public class ConsumableAttributesDao {
         try {
             connection = connectionManager.getConnection();
             deleteStmt = connection.prepareStatement(deleteConsumableAttr);
-            deleteStmt.setInt(1, consumableAttr.getItemID());
-            deleteStmt.setInt(2, consumableAttr.getAttributeID());
+            deleteStmt.setObject(1, consumableAttr.getItem());
+            deleteStmt.setObject(2, consumableAttr.getAttribute());
             deleteStmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

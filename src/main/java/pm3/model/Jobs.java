@@ -8,6 +8,10 @@ public class Jobs {
         this.jobID = jobID;
         this.jobName = jobName;
     }
+    
+    public Jobs(String jobName) {
+        this.jobName = jobName;
+    }
 
     public int getJobID() {
         return jobID;

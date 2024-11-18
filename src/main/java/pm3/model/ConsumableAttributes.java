@@ -1,22 +1,22 @@
 package pm3.model;
 
 public class ConsumableAttributes {
-    protected int itemID;
-    protected int attributeID;
+    protected Items item;
+    protected Attributes attribute;
     protected int attributeBonusCap;
     protected double attributeBonusPercent;
 
-    public ConsumableAttributes(int itemID, int attributeID, int attributeBonusCap, double attributeBonusPercent) {
-        this.itemID = itemID;
-        this.attributeID = attributeID;
+    public ConsumableAttributes(Items item, Attributes attribute, int attributeBonusCap, double attributeBonusPercent) {
+        this.item = item;
+        this.attribute = attribute;
         this.attributeBonusCap = attributeBonusCap;
         this.attributeBonusPercent = attributeBonusPercent;
     }
 
-    public int getItemID() { return itemID; }
+    public Items getItem() { return item; }
 
 
-    public int getAttributeID() { return attributeID; }
+    public Attributes getAttribute() { return attribute; }
 
 
     public int getAttributeBonusCap() { return attributeBonusCap; }
